@@ -26,7 +26,7 @@ if (import.meta.client) {
     }
 }
 
-function handleStart(params: { total_cycles: number; actuation_time: number; rest_time: number; current_cutoff: number }) {
+function handleStart(params: { total_cycles: number; actuate_time: number; rest_time: number; current_cutoff: number }) {
     if (import.meta.client && socket && socketStatus.value === 'OPEN') {
         socket.send(JSON.stringify({ action: 'start', ...params }))
     }

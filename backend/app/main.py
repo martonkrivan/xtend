@@ -32,7 +32,7 @@ async def websocket_endpoint(ws: WebSocket):
                     state = State()
                     state.status = "running"
                     state.total_cycles = data["total_cycles"]
-                    state.actuation_time = data["actuation_time"]
+                    state.actuate_time = data["actuate_time"]
                     state.rest_time = data["rest_time"]
                     state.current_cutoff = data["current_cutoff"]
                     if client:
@@ -63,10 +63,10 @@ async def start_test():
         while state.current_cycle < state.total_cycles:
             state.current_cycle += 1
             state.phase = "actuating"
-            state.phase_ends_at = time.time() + state.actuation_time * 60
+            state.phase_ends_at = time.time() + state.actuate_time * 60
             if client:
                 await client.send_json(state.model_dump())
-            await asyncio.sleep(state.actuation_time * 60)
+            await asyncio.sleep(state.actuate_time * 60)
 
             if state.current_cycle < state.total_cycles:
                 state.phase = "resting"

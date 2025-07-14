@@ -1,0 +1,40 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@font-face {
+  font-family: 'Facto';
+  src: url('../fonts/The Northern Block - Facto.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Facto';
+  src: url('../fonts/The Northern Block - Facto Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@theme {
+    --font-sans: 'Facto', sans-serif;
+  }
+
+body {
+  @apply bg-slate-950;
+}
+
+.card-fade-slide-enter-active, .card-fade-slide-leave-active {
+  @apply transition-all duration-300 ease-in-out;
+}
+.card-fade-slide-enter-from {
+  @apply opacity-0 translate-y-8;
+}
+.card-fade-slide-enter-to {
+  @apply opacity-100 translate-y-0;
+}
+.card-fade-slide-leave-from {
+  @apply opacity-100 translate-y-0;
+}
+.card-fade-slide-leave-to {
+  @apply opacity-0 -translate-y-8;
+}
