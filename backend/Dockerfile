@@ -3,10 +3,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN pip install --upgrade pip && pip install uv
-
-COPY pyproject.toml uv.lock ./
-RUN uv pip install --system --no-deps
+COPY pyproject.toml ./
+RUN pip install --upgrade pip && pip install fastapi pyserial uvicorn websockets
 
 COPY app/ ./app/
 
