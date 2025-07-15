@@ -79,9 +79,6 @@ const currentCard = computed(() => {
   }
 })
 
-const colorMode = useColorMode()
-colorMode.preference = 'dark'
-
 const formatted = useDateFormat(useNow(), 'H:mm')
 
 const loading = ref(true)
