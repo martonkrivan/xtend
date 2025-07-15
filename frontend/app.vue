@@ -7,7 +7,7 @@
       </div>
     </Transition>
     <div
-      class="flex h-screen w-screen select-none bg-slate-950 bg-[url('/assets/img/bg.svg')] bg-cover bg-center bg-no-repeat p-4 gap-4"
+      class="flex h-screen w-screen select-none bg-slate-950 bg-[url('/assets/img/bg.svg')] bg-cover bg-center bg-no-repeat p-4 gap-4 overflow-hidden"
       data-vaul-drawer-wrapper>
       <div class="flex-1 flex flex-col justify-start p-4 pr-0 gap-4">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 self-start flex-shrink-0" viewBox="0 0 338.867 53.733">
