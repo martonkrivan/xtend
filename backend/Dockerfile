@@ -7,7 +7,7 @@ WORKDIR /app
 RUN pip install uv
 
 COPY pyproject.toml uv.lock ./
-RUN uv pip install --system --no-cache-dir --require-hashes --frozen
+RUN uv install --system
 
 COPY app/ ./app/
 
