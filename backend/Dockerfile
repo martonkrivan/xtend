@@ -3,11 +3,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install uv (ultra-fast Python package manager)
-RUN pip install uv
+RUN pip install --upgrade pip && pip install uv
 
 COPY pyproject.toml uv.lock ./
-RUN uv pip install --system --no-cache --require-hashes
+RUN uv pip install --system --no-deps
 
 COPY app/ ./app/
 
