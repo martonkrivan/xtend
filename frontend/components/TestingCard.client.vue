@@ -28,13 +28,18 @@
         </div> -->
 
         <!-- <UProgress color="info"></UProgress> -->
-
-        <div class="flex flex-col items-center py-1 border border-slate-800 rounded-lg">
-            <p class="text-xs">Completed</p>
-            <p class="text-xl font-bold">{{ (state as any).current_cycle }}/{{ (state as any).total_cycles
-                }}</p>
+        <div class="flex gap-4 w-full">
+            <div class="flex-1 flex flex-col items-center py-1 border border-slate-800 rounded-lg">
+                <p class="text-xs">Completed</p>
+                <p class="text-xl font-bold">{{ (state as any).current_cycle }}/{{ (state as any).total_cycles
+                    }}</p>
+            </div>
+            <div class="flex-1 flex flex-col items-center py-1 border border-slate-800 rounded-lg">
+                <p class="text-xs">Current</p>
+                <p class="text-xl font-bold">{{ currentDisplay }} A</p>
+            </div>
         </div>
-        <div class="flex gap-4">
+        <div class="flex gap-4 w-full">
             <div class="flex-1 flex flex-col items-center py-1 border border-slate-800 rounded-lg">
                 <p class="text-xs">Phase</p>
                 <p class="text-xl font-bold">{{ (state as any).phase }}</p>
@@ -104,6 +109,14 @@ const formatTimeRemaining = computed(() => {
     const minutes = Math.floor(remaining / 60)
     const seconds = Math.floor(remaining % 60)
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
+})
+
+const currentDisplay = computed(() => {
+    const val = (state.value as any).current
+    if (typeof val === 'number' && !isNaN(val)) {
+        return val.toFixed(1)
+    }
+    return '0.0'
 })
 
 const data = ref([

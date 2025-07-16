@@ -6,10 +6,11 @@ const int AN2 = 3;    // Speed control (PWM)
 const int CURRENT_SENSOR_PIN = A0;  // Current sensor
 
 void setup() {
+  analogWrite(AN2, 0);
   pinMode(IN2, OUTPUT);
   pinMode(AN2, OUTPUT);
   pinMode(CURRENT_SENSOR_PIN, INPUT);
-  Serial.begin(9600);
+  Serial.begin(115200);
   stopMotor();
 }
 
@@ -35,12 +36,12 @@ void loop() {
 }
 
 void extend() {
-  digitalWrite(IN2, HIGH);
+  digitalWrite(IN2, LOW);
   analogWrite(AN2, 255);  // Full speed
 }
 
 void retract() {
-  digitalWrite(IN2, LOW);
+  digitalWrite(IN2, HIGH);
   analogWrite(AN2, 255);  // Full speed
 }
 

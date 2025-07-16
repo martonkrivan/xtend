@@ -1,5 +1,6 @@
 <template>
     <div class="flex-1 flex flex-col justify-between rounded-xl h-full p-4 bg-white/5 backdrop-blur box-shadow-lg">
+
         <UFormField label="Total cycles" size="sm">
             <UInputNumber size="lg" v-model="form.total_cycles" class="w-full" color="neutral" :min="10" :step="10" />
         </UFormField>

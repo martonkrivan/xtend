@@ -44,12 +44,25 @@ function handleReset() {
     }
 }
 
+function handleManualExtend(isDown: boolean) {
+    if (import.meta.client && socket && socketStatus.value === 'OPEN') {
+        socket.send(JSON.stringify({ action: isDown ? 'manual_extend' : 'manual_stop' }))
+    }
+}
+function handleManualRetract(isDown: boolean) {
+    if (import.meta.client && socket && socketStatus.value === 'OPEN') {
+        socket.send(JSON.stringify({ action: isDown ? 'manual_retract' : 'manual_stop' }))
+    }
+}
+
 export function useSocket() {
     return {
         state,
         socketStatus,
         handleStart,
         handleCancel,
-        handleReset
+        handleReset,
+        handleManualExtend,
+        handleManualRetract
     }
 }

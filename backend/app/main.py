@@ -54,6 +54,12 @@ async def websocket_endpoint(ws: WebSocket):
                     state = State()
                     if client:
                         await client.send_json(state.model_dump())
+                case "manual_extend":
+                    extend()
+                case "manual_retract":
+                    retract()
+                case "manual_stop":
+                    stop()
     except WebSocketDisconnect:
         if client is ws:
             client = None
@@ -62,6 +68,13 @@ async def websocket_endpoint(ws: WebSocket):
 async def start_test():
     global state
     try:
+        current_window = []
+        window_size = 2
+        display_interval = 0.5  # 500ms
+        last_display_update = 0
+        last_direction = None  # 'extend' or 'retract'
+        grace_period = 0.2  # 200ms
+        grace_multiplier = 1.2
         while state.current_cycle < state.total_cycles:
             state.current_cycle += 1
             print(f"Starting cycle {state.current_cycle}")
@@ -71,79 +84,83 @@ async def start_test():
                 await client.send_json(state.model_dump())
 
             actuate_end = time.time() + state.actuate_time * 60
+            # --- EXTEND ---
+            print("Sending EXTEND command")
+            extend()
+            direction_changed = last_direction != "extend"
+            last_direction = "extend"
+            extend_start = time.time()
             while time.time() < actuate_end:
-                # Extend until current_cutoff or time is up
-                print("Sending EXTEND command")
-                extend()
-                while time.time() < actuate_end:
-                    current_adc = read_current()
-                    if current_adc is not None:
-                        current_amps = to_amps(current_adc)
-                        print(
-                            f"Extending - Raw ADC: {current_adc}, Current: {current_amps:.2f} A"
-                        )
-                        if current_amps >= state.current_cutoff:
-                            print("Current cutoff reached during EXTEND")
-                            break
-                    await asyncio.sleep(0.1)
-                stop()
-                await asyncio.sleep(0.5)
-
-                # Retract until current_cutoff or time is up
-                print("Sending RETRACT command")
-                retract()
-                while time.time() < actuate_end:
-                    current_adc = read_current()
-                    if current_adc is not None:
-                        current_amps = to_amps(current_adc)
-                        print(
-                            f"Retracting - Raw ADC: {current_adc}, Current: {current_amps:.2f} A"
-                        )
-                        if current_amps >= state.current_cutoff:
-                            print("Current cutoff reached during RETRACT")
-                            break
-                    await asyncio.sleep(0.1)
-                stop()
-                await asyncio.sleep(0.5)
-
-            # After actuating, always retract until current_cutoff is reached
-            print("Final retract to ensure fully retracted position")
-            timeout = 10  # seconds
-            start_time = time.time()
-            retract()
-            while time.time() - start_time < timeout:
                 current_adc = read_current()
                 if current_adc is not None:
                     current_amps = to_amps(current_adc)
+                    current_window.append(current_amps)
+                    if len(current_window) > window_size:
+                        current_window.pop(0)
+                    smoothed_current = sum(current_window) / len(current_window)
+                    # Only update frontend every 500ms
+                    now = time.time()
+                    if now - last_display_update >= display_interval:
+                        state.current = smoothed_current
+                        if client:
+                            await client.send_json(state.model_dump())
+                        last_display_update = now
+                    # Grace period logic
+                    if direction_changed and (now - extend_start < grace_period):
+                        cutoff = state.current_cutoff * grace_multiplier
+                    else:
+                        cutoff = state.current_cutoff
                     print(
-                        f"Final Retract - Raw ADC: {current_adc}, Current: {current_amps:.2f} A"
+                        f"Extending - Raw ADC: {current_adc}, Current: {current_amps:.2f} A, Smoothed: {smoothed_current:.2f} A, Cutoff: {cutoff:.2f} A"
                     )
-                    if current_amps >= state.current_cutoff:
-                        print("Current cutoff reached during final retract")
+                    if current_amps >= cutoff:
+                        print("Current cutoff reached during EXTEND")
                         break
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.025)
             stop()
+            await asyncio.sleep(0.5)
+
+            # --- RETRACT ---
+            print("Sending RETRACT command")
+            retract()
+            direction_changed = last_direction != "retract"
+            last_direction = "retract"
+            retract_start = time.time()
+            while time.time() < actuate_end:
+                current_adc = read_current()
+                if current_adc is not None:
+                    current_amps = to_amps(current_adc)
+                    current_window.append(current_amps)
+                    if len(current_window) > window_size:
+                        current_window.pop(0)
+                    smoothed_current = sum(current_window) / len(current_window)
+                    # Only update frontend every 500ms
+                    now = time.time()
+                    if now - last_display_update >= display_interval:
+                        state.current = smoothed_current
+                        if client:
+                            await client.send_json(state.model_dump())
+                        last_display_update = now
+                    # Grace period logic
+                    if direction_changed and (now - retract_start < grace_period):
+                        cutoff = state.current_cutoff * grace_multiplier
+                    else:
+                        cutoff = state.current_cutoff
+                    print(
+                        f"Retracting - Raw ADC: {current_adc}, Current: {current_amps:.2f} A, Smoothed: {smoothed_current:.2f} A, Cutoff: {cutoff:.2f} A"
+                    )
+                    if current_amps >= cutoff:
+                        print("Current cutoff reached during RETRACT")
+                        break
+                await asyncio.sleep(0.025)
+            stop()
+            await asyncio.sleep(0.5)
 
             if state.current_cycle < state.total_cycles:
                 state.phase = "resting"
                 state.phase_ends_at = time.time() + state.rest_time * 60
                 if client:
                     await client.send_json(state.model_dump())
-                # Ensure actuator is retracted before resting
-                print("Ensuring actuator is retracted before resting")
-                retract()
-                for _ in range(100):  # up to 10 seconds
-                    current_adc = read_current()
-                    if current_adc is not None:
-                        current_amps = to_amps(current_adc)
-                        print(
-                            f"Rest Retract - Raw ADC: {current_adc}, Current: {current_amps:.2f} A"
-                        )
-                        if current_amps >= state.current_cutoff:
-                            print("Current cutoff reached during rest retract")
-                            break
-                    await asyncio.sleep(0.1)
-                stop()
                 await asyncio.sleep(state.rest_time * 60)
 
         state.status = "completed"
@@ -155,10 +172,8 @@ async def start_test():
     except asyncio.CancelledError:
         print("Test cancelled")
         stop()
-        close()
         if client:
             await client.send_json(state.model_dump())
-    close()
 
 
 def to_amps(current_adc):
