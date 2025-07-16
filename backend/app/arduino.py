@@ -1,10 +1,11 @@
-import os
 import serial
 import time
 
-serial_port = "/dev/ttyACM0"
-# serial_port = "/dev/cu.usbmodem1101"
-ser = serial.Serial(serial_port, 115200, timeout=1)
+# SERIAL_PORT = "/dev/cu.usbmodem1101"  # Update as needed
+SERIAL_PORT = "/dev/ttyACM0"
+BAUD_RATE = 115200
+
+ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
 time.sleep(2)
 
 
@@ -43,6 +44,12 @@ def read_current():
     except Exception as e:
         print(f"Arduino: Error reading current: {e}")
         return None
+
+
+def to_amps(current_adc):
+    voltage = (current_adc / 1023) * 5.0
+    offset = voltage - 2.5
+    return abs(offset / 0.066)
 
 
 def close():

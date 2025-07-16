@@ -53,7 +53,9 @@
               @touchend.prevent="manualDirection ? handleManualRetract(false) : handleManualExtend(false)">
               Retract
             </UButton>
-
+            <div class="text-xs text-white/70 mt-2 text-center">
+              Current: {{ ((state as any).current ?? 0).toFixed(1) }} A
+            </div>
           </div>
 
         </div>

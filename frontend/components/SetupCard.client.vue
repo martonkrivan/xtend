@@ -40,9 +40,9 @@
 const { handleStart } = useSocket()
 
 const form = ref({
-    total_cycles: 500,
-    actuate_time: 2,
-    rest_time: 18,
+    total_cycles: 5,
+    actuate_time: 0.25,
+    rest_time: 0.25,
     current_cutoff: 16
 })
 </script>

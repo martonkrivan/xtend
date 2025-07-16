@@ -11,3 +11,4 @@ class State(BaseModel):
     current_cutoff: float = 0.0
     phase: str = "idle"
     phase_ends_at: float = 0.0
+    cancel_requested: bool = False
