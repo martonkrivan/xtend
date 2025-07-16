@@ -21,7 +21,7 @@
               style="fill:currentColor;fill-opacity:1;fill-rule:nonzero;stroke:none"
               transform="matrix(.13333 0 0 -.13333 0 53.733)" />
           </svg>
-          <h1 class="text-xl font-bold flex-grow text-center">Cyclepath V1</h1>
+          <h1 class="text-xl font-bold flex-grow text-center">Tower Cycle Tester</h1>
         </div>
 
 
