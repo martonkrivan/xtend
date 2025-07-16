@@ -1,8 +1,8 @@
 import serial
 import time
 
-SERIAL_PORT = "/dev/cu.usbmodem1101"  # Update as needed
-# SERIAL_PORT = "/dev/ttyACM0"
+# SERIAL_PORT = "/dev/cu.usbmodem1101"  # Update as needed
+SERIAL_PORT = "/dev/ttyACM0"
 BAUD_RATE = 115200
 
 ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
