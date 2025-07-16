@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from app.state import State
-from app.arduino import extend, retract, stop, read_current, to_amps
+from app.arduino import extend, retract, stop, read_current, to_amps, ping
 import asyncio, time
 
 # === CONFIGURABLE CONSTANTS ===
@@ -10,6 +10,7 @@ GRACE_PERIOD = 1.0  # seconds after startup or direction change
 DISPLAY_INTERVAL = 0.5  # seconds for frontend updates
 POLL_INTERVAL = 0.025  # seconds for current polling
 WINDOW_SIZE = 2  # for smoothing current
+PING_INTERVAL = 0.5  # seconds for Arduino watchdog
 
 app = FastAPI()
 state = State()
@@ -103,11 +104,21 @@ async def websocket_endpoint(ws: WebSocket):
             client = None
 
 
+async def ping_watchdog():
+    while True:
+        try:
+            ping()
+        except Exception as e:
+            print(f"Watchdog ping failed: {e}")
+        await asyncio.sleep(PING_INTERVAL)
+
+
 async def run_cycle():
     global state
     current_window = []
     last_display_update = 0
     cycle_start_time = time.time()
+    ping_task = None
     for cycle in range(state.total_cycles):
         if state.cancel_requested:
             print("Cycle cancelled by user.")
@@ -121,6 +132,9 @@ async def run_cycle():
         actuate_end = time.time() + state.actuate_time * 60
         direction = "extend"  # Always start with extend
         last_direction = None
+        # Start watchdog ping
+        if ping_task is None or ping_task.done():
+            ping_task = asyncio.create_task(ping_watchdog())
         while time.time() < actuate_end:
             if state.cancel_requested:
                 print("Actuation cancelled by user.")
@@ -149,6 +163,13 @@ async def run_cycle():
             await asyncio.sleep(0.5)
             # Alternate direction
             direction = "retract" if direction == "extend" else "extend"
+        # Stop watchdog ping during rest
+        if ping_task and not ping_task.done():
+            ping_task.cancel()
+            try:
+                await ping_task
+            except Exception:
+                pass
         if state.cancel_requested:
             print("Cycle cancelled during rest phase.")
             break
@@ -159,6 +180,13 @@ async def run_cycle():
             if client:
                 await client.send_json(state.model_dump())
             await asyncio.sleep(state.rest_time * 60)
+    # Ensure ping is stopped at end
+    if ping_task and not ping_task.done():
+        ping_task.cancel()
+        try:
+            await ping_task
+        except Exception:
+            pass
     state.status = "completed" if not state.cancel_requested else "failed"
     state.phase = "idle"
     state.phase_ends_at = 0.0
