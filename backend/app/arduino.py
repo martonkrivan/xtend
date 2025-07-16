@@ -2,8 +2,8 @@ import os
 import serial
 import time
 
-# serial_port = "/dev/ttyACM0"
-serial_port = "/dev/cu.usbmodem1101"
+serial_port = "/dev/ttyACM0"
+# serial_port = "/dev/cu.usbmodem1101"
 ser = serial.Serial(serial_port, 115200, timeout=1)
 time.sleep(2)
 
