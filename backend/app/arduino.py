@@ -2,7 +2,7 @@ import os
 import serial
 import time
 
-serial_port = os.getenv("ARDUINO_PORT")
+serial_port = "/dev/ttyACM0"
 ser = serial.Serial(serial_port, 9600, timeout=1)
 time.sleep(2)
 
