@@ -2,7 +2,10 @@
     <div
         class="flex-1 flex flex-col justify-between rounded-xl h-full p-4 bg-white/5 backdrop-blur box-shadow-lg text-center">
 
-
+        <div class="flex justify-start items-center gap-2 -mt-2 -mr-4">
+            <label class="text-xs font-bold uppercase tracking-wider flex-shrink-0">Autopilot</label>
+            <USeparator class="w-full" />
+        </div>
         <UProgress color="info" />
         <h2 class="font-bold text-center">Testing in Progress</h2>
 
@@ -32,7 +35,7 @@
             <div class="flex-1 flex flex-col items-center py-1 border border-slate-800 rounded-lg">
                 <p class="text-xs">Completed</p>
                 <p class="text-xl font-bold">{{ (state as any).current_cycle }}/{{ (state as any).total_cycles
-                    }}</p>
+                }}</p>
             </div>
             <div class="flex-1 flex flex-col items-center py-1 border border-slate-800 rounded-lg">
                 <p class="text-xs">Current</p>

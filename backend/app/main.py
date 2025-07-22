@@ -1,7 +1,16 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from app.state import State
-from app.arduino import extend, retract, stop, read_current, to_amps
+from app.arduino import (
+    extend,
+    retract,
+    stop,
+    read_current,
+    to_amps,
+    lock_extend,
+    lock_retract,
+    stop_lock,
+)
 import asyncio, time
 
 # === CONFIGURABLE CONSTANTS ===
@@ -96,8 +105,13 @@ async def websocket_endpoint(ws: WebSocket):
                     extend()
                 case "manual_retract":
                     retract()
+                case "manual_lock_extend":
+                    lock_extend()
+                case "manual_lock_retract":
+                    lock_retract()
                 case "manual_stop":
                     stop()
+                    stop_lock()
     except WebSocketDisconnect:
         if client is ws:
             client = None
@@ -112,6 +126,14 @@ async def run_cycle():
         if state.cancel_requested:
             print("Cycle cancelled by user.")
             break
+        # Always unlock before each actuation phase
+        state.phase = "unlocking"
+        if client:
+            await client.send_json(state.model_dump())
+        print("Unlocking before actuation (3 seconds)...")
+        lock_retract()
+        await asyncio.sleep(3)
+        stop_lock()
         state.current_cycle = cycle + 1
         print(f"Starting cycle {state.current_cycle}")
         state.phase = "actuating"
@@ -154,11 +176,46 @@ async def run_cycle():
             break
         # --- REST ---
         if state.current_cycle < state.total_cycles:
+            # 1. Return tower to fully retracted (stop on current limit)
+            state.phase = "homing"
+            if client:
+                await client.send_json(state.model_dump())
+            print("Returning tower to fully retracted for rest phase...")
+            retract()
+            # Wait until current limit is hit
+            while True:
+                await asyncio.sleep(POLL_INTERVAL)
+                if state.current >= state.current_cutoff:
+                    print("Current cutoff reached during rest retract")
+                    break
+                if state.cancel_requested:
+                    print("Cancelled during rest retract phase.")
+                    break
+            stop()
+            await asyncio.sleep(0.5)
+            # 2. Extend lock actuator for 3 seconds
+            state.phase = "locking"
+            if client:
+                await client.send_json(state.model_dump())
+            print("Extending lock actuator for 3 seconds...")
+            lock_extend()
+            await asyncio.sleep(3)
+            stop_lock()
+            # 3. Wait for the rest time
             state.phase = "resting"
             state.phase_ends_at = time.time() + state.rest_time * 60
             if client:
                 await client.send_json(state.model_dump())
+            print(f"Resting for {state.rest_time} minutes...")
             await asyncio.sleep(state.rest_time * 60)
+            # 4. Retract lock actuator for 3 seconds
+            state.phase = "unlocking"
+            if client:
+                await client.send_json(state.model_dump())
+            print("Retracting lock actuator for 3 seconds...")
+            lock_retract()
+            await asyncio.sleep(3)
+            stop_lock()
     state.status = "completed" if not state.cancel_requested else "failed"
     state.phase = "idle"
     state.phase_ends_at = 0.0

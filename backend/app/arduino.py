@@ -52,5 +52,17 @@ def to_amps(current_adc):
     return abs(offset / 0.066)
 
 
+def lock_extend():
+    return send_command("LOCK_EXTEND")
+
+
+def lock_retract():
+    return send_command("LOCK_RETRACT")
+
+
+def stop_lock():
+    return send_command("STOP_LOCK")
+
+
 def close():
     ser.close()

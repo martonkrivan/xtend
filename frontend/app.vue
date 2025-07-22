@@ -24,37 +24,58 @@
           <h1 class="text-xl font-bold flex-grow text-center">Tower Cycle Tester</h1>
         </div>
 
+        <div class="rounded-xl bg-white/5 backdrop-blur box-shadow-lg flex flex-col items-center p-4 gap-4 w-full">
+          <div class="flex flex-col gap-2 w-full">
+            <div class="flex justify-start items-center gap-2">
+              <label class="text-xs font-bold uppercase tracking-wider flex-shrink-0">Current</label>
+              <USeparator class="w-full" />
+              <div class="flex-shrink-0 text-white/70 text-center">
+                {{ ((state as any).current ?? 0).toFixed(1) }} A
+              </div>
+            </div>
 
+          </div>
+
+        </div>
         <div class="rounded-xl bg-white/5 backdrop-blur box-shadow-lg flex flex-col items-center p-4 gap-4 w-full">
           <div class="flex flex-col gap-2 w-full">
             <div class="flex justify-start items-center gap-2 -mt-2 -mr-4">
-              <label class="text-xs font-bold uppercase tracking-wider flex-shrink-0">Manual Jog</label>
+              <label class="text-xs font-bold uppercase tracking-wider flex-shrink-0">Manual</label>
               <USeparator class="w-full" />
             </div>
-            <div class="flex items-center gap-2">
-              <USwitch color="info" v-model="manualDirection" />
-              <span class="text-xs">Reverse Direction</span>
-            </div>
-            <UButton class="cursor-pointer font-bold" variant="outline" color="info" size="lg"
-              icon="i-ph-arrows-out-simple-bold" :disabled="state.status === 'running'"
-              @mousedown="manualDirection ? handleManualExtend(true) : handleManualRetract(true)"
-              @mouseup="manualDirection ? handleManualExtend(false) : handleManualRetract(false)"
-              @mouseleave="manualDirection ? handleManualExtend(false) : handleManualRetract(false)"
-              @touchstart.prevent="manualDirection ? handleManualExtend(true) : handleManualRetract(true)"
-              @touchend.prevent="manualDirection ? handleManualExtend(false) : handleManualRetract(false)">
-              Extend
-            </UButton>
-            <UButton class="cursor-pointer font-bold" variant="outline" color="info" size="lg"
-              icon="i-ph-arrows-in-simple-bold" :disabled="state.status === 'running'"
-              @mousedown="manualDirection ? handleManualRetract(true) : handleManualExtend(true)"
-              @mouseup="manualDirection ? handleManualRetract(false) : handleManualExtend(false)"
-              @mouseleave="manualDirection ? handleManualRetract(false) : handleManualExtend(false)"
-              @touchstart.prevent="manualDirection ? handleManualRetract(true) : handleManualExtend(true)"
-              @touchend.prevent="manualDirection ? handleManualRetract(false) : handleManualExtend(false)">
-              Retract
-            </UButton>
-            <div class="text-xs text-white/70 mt-2 text-center">
-              Current: {{ ((state as any).current ?? 0).toFixed(1) }} A
+            <div class="grid grid-cols-2 gap-2 w-full mt-2">
+              <UButton class="cursor-pointer font-bold" variant="outline" color="info" size="lg"
+                icon="i-ph-arrow-up-bold" :disabled="state.status === 'running'"
+                @mousedown="manualDirection ? handleManualRetract(true) : handleManualExtend(true)"
+                @mouseup="manualDirection ? handleManualRetract(false) : handleManualExtend(false)"
+                @mouseleave="manualDirection ? handleManualRetract(false) : handleManualExtend(false)"
+                @touchstart.prevent="manualDirection ? handleManualRetract(true) : handleManualExtend(true)"
+                @touchend.prevent="manualDirection ? handleManualRetract(false) : handleManualExtend(false)">
+                Up
+              </UButton>
+              <UButton class="cursor-pointer font-bold" variant="outline" color="info" size="lg"
+                icon="i-ph-arrow-down-bold" :disabled="state.status === 'running'"
+                @mousedown="manualDirection ? handleManualExtend(true) : handleManualRetract(true)"
+                @mouseup="manualDirection ? handleManualExtend(false) : handleManualRetract(false)"
+                @mouseleave="manualDirection ? handleManualExtend(false) : handleManualRetract(false)"
+                @touchstart.prevent="manualDirection ? handleManualExtend(true) : handleManualRetract(true)"
+                @touchend.prevent="manualDirection ? handleManualExtend(false) : handleManualRetract(false)">
+                Down
+              </UButton>
+
+              <UButton class="cursor-pointer font-bold" variant="outline" color="warning" size="lg"
+                icon="i-ph-lock-bold" :disabled="state.status === 'running'" @mousedown="handleManualLockExtend(true)"
+                @mouseup="handleManualLockExtend(false)" @mouseleave="handleManualLockExtend(false)"
+                @touchstart.prevent="handleManualLockExtend(true)" @touchend.prevent="handleManualLockExtend(false)">
+                Lock
+              </UButton>
+              <UButton class="cursor-pointer font-bold" variant="outline" color="warning" size="lg"
+                icon="i-ph-lock-open-bold" :disabled="state.status === 'running'"
+                @mousedown="handleManualLockRetract(true)" @mouseup="handleManualLockRetract(false)"
+                @mouseleave="handleManualLockRetract(false)" @touchstart.prevent="handleManualLockRetract(true)"
+                @touchend.prevent="handleManualLockRetract(false)">
+                Unlock
+              </UButton>
             </div>
           </div>
 
@@ -80,7 +101,7 @@ import TestingCard from '~/components/TestingCard.client.vue'
 import CompletedCard from '~/components/CompletedCard.client.vue'
 import FailedCard from '~/components/FailedCard.client.vue'
 
-const { state, socketStatus, handleStart, handleManualExtend, handleManualRetract } = useSocket()
+const { state, socketStatus, handleStart, handleManualExtend, handleManualRetract, handleManualLockExtend, handleManualLockRetract } = useSocket()
 
 const manualDirection = ref(true) // true = normal, false = swapped
 

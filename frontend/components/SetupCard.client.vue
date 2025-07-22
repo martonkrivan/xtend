@@ -1,6 +1,9 @@
 <template>
     <div class="flex-1 flex flex-col justify-between rounded-xl h-full p-4 bg-white/5 backdrop-blur box-shadow-lg">
-
+        <div class="flex justify-start items-center gap-2 -mt-2 -mr-4">
+            <label class="text-xs font-bold uppercase tracking-wider flex-shrink-0">Autopilot</label>
+            <USeparator class="w-full" />
+        </div>
         <UFormField label="Total cycles" size="sm">
             <UInputNumber size="lg" v-model="form.total_cycles" class="w-full" color="neutral" :min="10" :step="10" />
         </UFormField>

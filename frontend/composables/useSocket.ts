@@ -55,6 +55,17 @@ function handleManualRetract(isDown: boolean) {
     }
 }
 
+function handleManualLockExtend(isDown: boolean) {
+    if (import.meta.client && socket && socketStatus.value === 'OPEN') {
+        socket.send(JSON.stringify({ action: isDown ? 'manual_lock_extend' : 'manual_stop' }))
+    }
+}
+function handleManualLockRetract(isDown: boolean) {
+    if (import.meta.client && socket && socketStatus.value === 'OPEN') {
+        socket.send(JSON.stringify({ action: isDown ? 'manual_lock_retract' : 'manual_stop' }))
+    }
+}
+
 export function useSocket() {
     return {
         state,
@@ -63,6 +74,8 @@ export function useSocket() {
         handleCancel,
         handleReset,
         handleManualExtend,
-        handleManualRetract
+        handleManualRetract,
+        handleManualLockExtend,
+        handleManualLockRetract
     }
 }
